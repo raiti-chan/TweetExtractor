@@ -5,21 +5,16 @@ namespace TweetExtractor.ProgramAugment {
 	/// プログラム引数のディクショナリ
 	/// </summary>
 	public class ProgramAugmentDictionary {
-
-		/// <summary>
-		/// 格納予定のタグのフラグ
-		/// </summary>
-		private string _oldTag;
-
+		
 		/// <summary>
 		/// タグと値が対になってるデータ格納場所
 		/// </summary>
-		private Dictionary<string, string> _dictionary = new Dictionary<string, string>();
+		private readonly Dictionary<string, string> _dictionary = new Dictionary<string, string>();
 
 		/// <summary>
 		/// パラメーターの格納場所
 		/// </summary>
-		private List<string> _parameterList = new List<string>(2);
+		private readonly List<string> _parameterList = new List<string>(2);
 
 		/// <summary>
 		/// 指定されたタグの値を取得します。
@@ -30,7 +25,7 @@ namespace TweetExtractor.ProgramAugment {
 		/// <returns>タグに格納されたデータ</returns>
 		public string this[string tag] {
 			get {
-				bool result = this._dictionary.TryGetValue(tag, out string retstr);
+				this._dictionary.TryGetValue(tag, out string retstr);
 				return retstr;
 			}
 		}
@@ -54,26 +49,26 @@ namespace TweetExtractor.ProgramAugment {
 		/// </summary>
 		/// <param name="args">プログラム引数</param>
 		public ProgramAugmentDictionary(string[] args) {
+			string oldTag = null;
 			foreach (string arg in args) {
 				if (arg[0] == '-') {
-					if (this._oldTag != null) {
-						this._dictionary.Add(this._oldTag, "true");
+					if (oldTag != null) {
+						this._dictionary.Add(oldTag, "true");
 					}
-					this._oldTag = arg.Substring(1);
+					oldTag = arg.Substring(1);
 				} else {
-					if (this._oldTag != null) {
-						this._dictionary.Add(this._oldTag, arg);
-						this._oldTag = null;
+					if (oldTag != null) {
+						this._dictionary.Add(oldTag, arg);
+						oldTag = null;
 					} else {
 						this._parameterList.Add(arg);
 					}
 				}
 			}
 
-			if (this._oldTag != null) {
-				this._dictionary.Add(this._oldTag, "true");
+			if (oldTag != null) {
+				this._dictionary.Add(oldTag, "true");
 			}
-
 		}
 
 
