@@ -1,5 +1,4 @@
-﻿using System;
-using TweetExtractor.ProgramAugment.Attributes;
+﻿using TweetExtractor.ProgramAugment.Attributes;
 
 namespace TweetExtractor.ProgramAugment {
 	/// <inheritdoc />
@@ -28,35 +27,15 @@ namespace TweetExtractor.ProgramAugment {
 		/// <summary>
 		/// ユーザー名
 		/// </summary>
-		[ParameterFlagAugment("user", "ログインするローカルユーザー名です。新規の場合ログインモードに入ります。")]
+		[ParameterFlagAugment("user", "ログインするローカルユーザー名です。新規の場合ログインモードに入ります。", "ユーザー名")]
 		// ReSharper disable once UnassignedGetOnlyAutoProperty
 		// ReSharper disable once UnusedMember.Global
 		public string User { get; }
-		
-		// ReSharper disable once UnusedMember.Global
-		[FlagAugment]
-		public readonly bool FTest = false;
-		
-		[ParameterFlagAugment]
-		// ReSharper disable once UnusedMember.Global
-		public readonly string FTest2 = null;
 		
 		/// <inheritdoc />
 		/// <summary>
 		/// </summary>
 		/// <param name="propertys">引数</param>
 		public Augments(string[] propertys) : base(propertys) { }
-		
-		[FlagAugment]
-		// ReSharper disable once UnusedMember.Global
-		public void Test() {
-			Console.WriteLine("Test");
-		}
-
-		[ParameterFlagAugment]
-		// ReSharper disable once UnusedMember.Global
-		public void Test2(string parameter) {
-			Console.WriteLine("Tsst2:{0}",parameter);
-		} 
 	}
 }

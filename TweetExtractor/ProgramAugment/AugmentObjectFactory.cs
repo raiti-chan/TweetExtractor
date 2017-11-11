@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using TweetExtractor.ProgramAugment.Attributes;
 using TweetExtractor.ProgramAugment.Exceptions;
 
@@ -186,6 +187,27 @@ namespace TweetExtractor.ProgramAugment {
 			return tObj;
 		}
 
+		/// <summary>
+		/// ヘルプで表示するテキストを取得します。
+		/// </summary>
+		/// <returns></returns>
+		public string GetHelpText() {
+			StringBuilder builder = new StringBuilder();
+			builder.AppendLine("Paramater");
+			foreach (var flag in this._flagSet) {
+				builder.Append("  ");
+				if (this._parameterFlagDictionary.ContainsKey(flag)) {
+					_MemberObj<ParameterFlagAugmentAttribute> memberObj = this._parameterFlagDictionary[flag];
+					builder.AppendLine($"-{flag}:{memberObj.Attribute.ParameterMessage}  {memberObj.Attribute.HelpMessage}");
+				} else {
+					_MemberObj<FlagAugmentAttribute> memberObj = this._flagDictionary[flag];
+					builder.AppendLine($"-{flag}  {memberObj.Attribute.HelpMessage}");
+				}
+			}
+
+			return builder.ToString();
+		}
+
 		private static string _GetNameOfPropertysField(MemberInfo fieldInfo) {
 			string fieldName = fieldInfo.Name;
 			int endIndex = fieldName.IndexOf('>');
@@ -289,10 +311,11 @@ namespace TweetExtractor.ProgramAugment {
 			}
 		}
 
+		// ReSharper disable once InconsistentNaming
 		private class _PPropertyReflect : _PropertyReflect {
 			private readonly string _paramater;
 
-			public _PPropertyReflect(PropertyInfo propertyInfo, FieldInfo _backkingFieldInfo, string paramater) : base(propertyInfo, _backkingFieldInfo) {
+			public _PPropertyReflect(PropertyInfo propertyInfo, FieldInfo backkingFieldInfo, string paramater) : base(propertyInfo, backkingFieldInfo) {
 				this._paramater = paramater;
 			}
 

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using TweetExtractor.DataBase;
 using TweetExtractor.ProgramAugment;
 using TweetExtractor.Twitter;
 
@@ -32,7 +30,9 @@ namespace TweetExtractor {
 			//ProgramAugment = new ProgramAugmentDictionary(args);
 			// ReSharper disable once UnusedVariable
 			AugmentObjectFactory<Augments> factory = new AugmentObjectFactory<Augments>();
-			Augments augmentObject = factory.GeneratAugmentObject(args);
+			//Augments augmentObject = factory.GeneratAugmentObject(args);
+			Console.WriteLine("HELP");
+			Console.WriteLine(factory.GetHelpText());
 			Console.WriteLine();
 			/*
 			string user = ProgramAugment["user"];
