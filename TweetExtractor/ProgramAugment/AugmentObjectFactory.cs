@@ -42,13 +42,13 @@ namespace TweetExtractor.ProgramAugment {
 		/// <summary>
 		/// 指定されたタイプの引数オブイジェクトのファクトリを生成します。
 		/// </summary>
-		/// <param name="type">生成する引数オブジェクトクラス</param>
 		public AugmentObjectFactory() {
 			this._augmentsObjectType = typeof(T);
 			//プロパティのバッキングフィールドをプロパティの名でディクショナリ化
-			Dictionary<string, MemberInfo> privateFieldInfos = this._augmentsObjectType
-				.GetMembers(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)
-				.Where(info => info.MemberType == MemberTypes.Field && info.Name.IndexOf('<') == 0).ToDictionary(_GetNameOfPropertysField);
+			Dictionary<string, MemberInfo> privateFieldInfos =
+			(from info in this._augmentsObjectType.GetMembers(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)
+				where info.MemberType == MemberTypes.Field && info.Name.IndexOf('<') == 0
+				select info).ToDictionary(_GetNameOfPropertysField);
 
 			foreach (var info in this._augmentsObjectType.GetMembers(
 				BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)) {
@@ -87,8 +87,8 @@ namespace TweetExtractor.ProgramAugment {
 						} else {
 							if (fieldInfo.FieldType != typeof(bool)) throw new Exception("フィールドの型が違います。bool");
 						}
-					}
 						break;
+					}
 					case MemberTypes.Method: {
 						//メソッドフラグの型チェック
 						MethodInfo methodInfo = (MethodInfo) info;
@@ -99,9 +99,9 @@ namespace TweetExtractor.ProgramAugment {
 						} else {
 							if (parameterInfos.Length != 0) throw new Exception("フラグメソッドは引数が無しのメソッドでなくてはいけません。");
 						}
-					}
 						break;
-					case MemberTypes.Property:
+					}
+					case MemberTypes.Property: {
 						//プロパティフラグの型チェック
 						PropertyInfo propertyInfo = (PropertyInfo) info;
 						if (hasParameter) {
@@ -112,13 +112,77 @@ namespace TweetExtractor.ProgramAugment {
 						//プロパティとプロパティのバッキングフィールドを関連付けます
 						this._propertysFieldDictionary.Add(propertyInfo, (FieldInfo) privateFieldInfos[propertyInfo.Name]);
 						break;
+					}
 				}
 			}
 		}
 
-		public T GeneratAugmentObject(string [] args, params object[] customConstructorArgs) {
-			IEnumerable<object> invokeArgs = new object[]{args}.Concat(customConstructorArgs);
-			T tObj = (T)Activator.CreateInstance(this._augmentsObjectType, invokeArgs);
+		/// <summary>
+		/// 引数オブジェクトを生成します。
+		/// </summary>
+		/// <param name="args">プログラム引数</param>
+		/// <param name="customConstructorArgs">引数オブジェクトのコンストラクタのstring配列以降の引数</param>
+		/// <returns>生成された引数オブジェクト</returns>
+		public T GeneratAugmentObject(string[] args, params object[] customConstructorArgs) {
+			List<string> arguments = new List<string>();
+			List<_IReflectFunc> reflectFuncs = new List<_IReflectFunc>();
+			for (int i = 0; i < args.Length; i++) {
+				var str = args[i];
+				if (str[0] == '-') {
+					string flag = str.Substring(1);
+					if (!this._flagSet.Contains(flag)) throw new Exception($"フラグが不正です。 {str}");
+					if (this._flagDictionary.ContainsKey(flag)) {
+						//通常フラグの場合
+						_MemberObj<FlagAugmentAttribute> memberObj = this._flagDictionary[flag];
+						MemberInfo memberInfo = memberObj.Member;
+						switch (memberInfo.MemberType) {
+							case MemberTypes.Field: {
+								reflectFuncs.Add(new _FieldReflect((FieldInfo) memberInfo));
+								break;
+							}
+							case MemberTypes.Method: {
+								reflectFuncs.Add(new _MethodReflect((MethodInfo) memberInfo));
+								break;
+							}
+							case MemberTypes.Property: {
+								PropertyInfo propertyInfo = (PropertyInfo) memberInfo;
+								reflectFuncs.Add(new _PropertyReflect(propertyInfo, _propertysFieldDictionary.GetValue(propertyInfo)));
+								break;
+							}
+						}
+					} else {
+						//パラメータ付きフラグの場合
+						_MemberObj<ParameterFlagAugmentAttribute> memberObj = this._parameterFlagDictionary[flag];
+						i++;
+						string parameter = args[i];
+						MemberInfo memberInfo = memberObj.Member;
+						switch (memberInfo.MemberType) {
+							case MemberTypes.Field: {
+								reflectFuncs.Add(new _PFieldReflect((FieldInfo) memberInfo, parameter));
+								break;
+							}
+							case MemberTypes.Method: {
+								reflectFuncs.Add(new _PMethodReflect((MethodInfo) memberInfo, parameter));
+								break;
+							}
+							case MemberTypes.Property: {
+								PropertyInfo propertyInfo = (PropertyInfo) memberInfo;
+								reflectFuncs.Add(new _PPropertyReflect(propertyInfo, _propertysFieldDictionary.GetValue(propertyInfo), parameter));
+								break;
+							}
+						}
+					}
+					continue;
+				}
+				arguments.Add(str);
+			}
+
+
+			IEnumerable<object> invokeArgs = new object[] {arguments.ToArray()}.Concat(customConstructorArgs);
+			T tObj = (T) Activator.CreateInstance(this._augmentsObjectType, invokeArgs.ToArray());
+
+			reflectFuncs.ForEach(reflectFunc => reflectFunc.Reflect(tObj));
+
 			return tObj;
 		}
 
@@ -128,32 +192,116 @@ namespace TweetExtractor.ProgramAugment {
 			return fieldName.Substring(1, endIndex - 1);
 		}
 
-		/// <summary>
-		/// ディクショナリに格納する<see cref="MemberInfo"/>とそのメンバにつけられた<see cref="FlagAugmentAttribute"/>を保持するクラス
-		/// </summary>
-		/// <typeparam name="T">格納するアノテーションの型。<see cref="FlagAugmentAttribute"/>をベースとしたアノテーションクラス</typeparam>
 		// ReSharper disable once InconsistentNaming
-		private class _MemberObj<T> where T : FlagAugmentAttribute {
-			/// <summary>
-			/// メンバ
-			/// </summary>
+		private class _MemberObj<TAttribute> where TAttribute : FlagAugmentAttribute {
 			public MemberInfo Member { get; }
 
-			/// <summary>
-			/// アノテーション
-			/// </summary>
-			// ReSharper disable once UnusedAutoPropertyAccessor.Local
-			// ReSharper disable once MemberCanBePrivate.Local
-			public T Attribute { get; }
 
-			/// <summary>
-			/// メンバとフラグアノテーションからメンバオブジェクトを生成します。
-			/// </summary>
-			/// <param name="member">メンバ</param>
-			/// <param name="attribute">フラグアノテーション</param>
-			public _MemberObj(MemberInfo member, T attribute) {
+			// ReSharper disable once MemberCanBePrivate.Local
+			// ReSharper disable once UnusedAutoPropertyAccessor.Local
+			public TAttribute Attribute { get; }
+
+			public _MemberObj(MemberInfo member, TAttribute attribute) {
 				this.Member = member;
 				this.Attribute = attribute;
+			}
+		}
+
+		// ReSharper disable once InconsistentNaming
+		private interface _IReflectFunc {
+			void Reflect(object o);
+		}
+
+		// ReSharper disable once InconsistentNaming
+		private class _FieldReflect : _IReflectFunc {
+			// ReSharper disable once InconsistentNaming
+			protected readonly FieldInfo _fieldInfo;
+
+			public _FieldReflect(FieldInfo fieldInfo) {
+				this._fieldInfo = fieldInfo;
+			}
+
+			public virtual void Reflect(object o) {
+				this._fieldInfo.SetValue(o, true);
+			}
+		}
+
+		// ReSharper disable once InconsistentNaming
+		private class _PFieldReflect : _FieldReflect {
+			private readonly string _paramater;
+
+			public _PFieldReflect(FieldInfo fieldInfo, string paramater) : base(fieldInfo) {
+				this._paramater = paramater;
+			}
+
+			public override void Reflect(object o) {
+				this._fieldInfo.SetValue(o, this._paramater);
+			}
+		}
+
+		// ReSharper disable once InconsistentNaming
+		private class _MethodReflect : _IReflectFunc {
+			// ReSharper disable once InconsistentNaming
+			protected readonly MethodInfo _methodInfo;
+
+			public _MethodReflect(MethodInfo methodInfo) {
+				this._methodInfo = methodInfo;
+			}
+
+			public virtual void Reflect(object o) {
+				this._methodInfo.Invoke(o, null);
+			}
+		}
+
+		// ReSharper disable once InconsistentNaming
+		private class _PMethodReflect : _MethodReflect {
+			private readonly string _paramater;
+
+			public _PMethodReflect(MethodInfo methodInfo, string paramater) : base(methodInfo) {
+				this._paramater = paramater;
+			}
+
+			public override void Reflect(object o) {
+				this._methodInfo.Invoke(o, new object[] {_paramater});
+			}
+		}
+
+		// ReSharper disable once InconsistentNaming
+		private class _PropertyReflect : _IReflectFunc {
+			// ReSharper disable once InconsistentNaming
+			protected readonly PropertyInfo _propertyInfo;
+
+			// ReSharper disable once InconsistentNaming
+			protected readonly FieldInfo _backkingFieldInfo;
+
+			// ReSharper disable once InconsistentNaming
+			public _PropertyReflect(PropertyInfo propertyInfo, FieldInfo _backkingFieldInfo) {
+				this._propertyInfo = propertyInfo;
+				this._backkingFieldInfo = _backkingFieldInfo;
+			}
+
+			public virtual void Reflect(object o) {
+				if (this._propertyInfo.SetMethod == null) {
+					this._backkingFieldInfo.SetValue(o, true);
+				} else {
+					this._propertyInfo.SetValue(o, true);
+				}
+			}
+		}
+
+		private class _PPropertyReflect : _PropertyReflect {
+			private readonly string _paramater;
+
+			public _PPropertyReflect(PropertyInfo propertyInfo, FieldInfo _backkingFieldInfo, string paramater) : base(propertyInfo, _backkingFieldInfo) {
+				this._paramater = paramater;
+			}
+
+			public override void Reflect(object o) {
+				if (this._propertyInfo.SetMethod == null) {
+					this._backkingFieldInfo.SetValue(o, this._paramater);
+				} else {
+					this._propertyInfo.SetValue(o, this._paramater);
+				}
 			}
 		}
 	}

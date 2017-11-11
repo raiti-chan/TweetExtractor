@@ -6,6 +6,7 @@ namespace TweetExtractor.ProgramAugment {
 	/// <summary>
 	/// プログラム引数
 	/// </summary>
+	// ReSharper disable once ClassNeverInstantiated.Global
 	public class Augments : AugmentsObjectBase{
 		
 		/// <summary>
