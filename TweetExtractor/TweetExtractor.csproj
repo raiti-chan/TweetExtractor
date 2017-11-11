@@ -62,7 +62,6 @@
     <Compile Include="ProgramAugment\Exceptions\DuplicateFlagDefinitionsException.cs" />
     <Compile Include="ProgramAugment\ExtensionMethods.cs" />
     <Compile Include="ProgramAugment\AugmentsObjectBase.cs" />
-    <Compile Include="ProgramAugment\old\ProgramAugmentDictionary.cs" />
     <Compile Include="TweetExtractor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Twitter\TwitterManager.cs" />
