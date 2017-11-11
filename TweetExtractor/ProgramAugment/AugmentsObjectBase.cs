@@ -3,7 +3,7 @@
 	/// 引数オブジェクトの基礎クラス
 	/// </summary>
 	// ReSharper disable once UnusedMember.Global
-	public class AugmentsObjectBase {
+	public abstract class AugmentsObjectBase {
 		
 		/// <summary>
 		/// 引数の格納先
@@ -17,7 +17,7 @@
 		/// </summary>
 		/// <param name="propertys">引数</param>
 		// ReSharper disable once MemberCanBeProtected.Global
-		public AugmentsObjectBase(string[] propertys) {
+		protected AugmentsObjectBase(string[] propertys) {
 			this.Propertys = propertys;
 		}
 

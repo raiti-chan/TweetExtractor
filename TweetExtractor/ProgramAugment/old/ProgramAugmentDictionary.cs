@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace TweetExtractor.ProgramAugment {
+namespace TweetExtractor.ProgramAugment.old {
 	/// <summary>
 	/// プログラム引数のディクショナリ
 	/// </summary>
+	// ReSharper disable once UnusedMember.Global
 	public class ProgramAugmentDictionary {
 		
 		/// <summary>
@@ -23,6 +24,7 @@ namespace TweetExtractor.ProgramAugment {
 		/// </summary>
 		/// <param name="tag">タグ名</param>
 		/// <returns>タグに格納されたデータ</returns>
+		// ReSharper disable once UnusedMember.Global
 		public string this[string tag] {
 			get {
 				this._dictionary.TryGetValue(tag, out string retstr);
@@ -35,11 +37,13 @@ namespace TweetExtractor.ProgramAugment {
 		/// </summary>
 		/// <param name="index">パラメーターのインデックス</param>
 		/// <returns>パラメーター</returns>
+		// ReSharper disable once UnusedMember.Global
 		public string this[int index] => this._parameterList[index];
 
 		/// <summary>
 		/// パラメーターの要素数。
 		/// </summary>
+		// ReSharper disable once UnusedMember.Global
 		public int ParameterCount => this._parameterList.Count;
 
 		

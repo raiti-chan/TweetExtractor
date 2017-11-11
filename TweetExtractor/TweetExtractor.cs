@@ -11,18 +11,30 @@ namespace TweetExtractor {
 	internal static class TweetExtractor {
 
 		// ReSharper disable once MemberCanBePrivate.Global
-		public static ProgramAugmentDictionary ProgramAugment;
+		//public static ProgramAugmentDictionary ProgramAugment;
+
+		// ReSharper disable once InconsistentNaming
+		// ReSharper disable once UnusedMember.Global
+		// ReSharper disable once UnusedAutoPropertyAccessor.Local
+		public static Augments augmemts { get; private set; }
 
 		// ReSharper disable once MemberCanBePrivate.Global
-		public static TwitterManager Twitter;
+		// ReSharper disable once UnusedMember.Global
+		// ReSharper disable once UnusedAutoPropertyAccessor.Local
+		public static TwitterManager Twitter { get; private set; }
 		
 		/// <summary>
 		/// メインメソッド
 		/// </summary>
 		/// <param name="args">プログラム引数</param>
+		// ReSharper disable once UnusedParameter.Local
 		private static void Main(string[] args) {
-			ProgramAugment = new ProgramAugmentDictionary(args);
-
+			//ProgramAugment = new ProgramAugmentDictionary(args);
+			// ReSharper disable once UnusedVariable
+			AugmentObjectFactory<Augments> factory = new AugmentObjectFactory<Augments>();
+			Augments augmentObject = factory.GeneratAugmentObject(args);
+			Console.WriteLine();
+			/*
 			string user = ProgramAugment["user"];
 
 			switch (user) {
@@ -58,12 +70,16 @@ namespace TweetExtractor {
 			
 			Console.WriteLine("Text Output");
 			Exit(0);
+			*/
 		}
 
 		/// <summary>
 		/// 取得したツイートをデーターベースに保管するモード
 		/// </summary>
+		// ReSharper disable once UnusedMember.Local
+		// ReSharper disable once UnusedParameter.Local
 		private static void DataBaseMode(string dataBasePath) {
+			/*
 			if (ProgramAugment["add"] == null && File.Exists(dataBasePath)) {
 				Console.WriteLine("File already exists. Do you want to overwrite?");
 				Console.Write("Y/N:");
@@ -74,12 +90,17 @@ namespace TweetExtractor {
 			}
 			
 			TweetDataBase tdb = new TweetDataBase(dataBasePath);
+			*/
 		}
 
+		// ReSharper disable once UnusedParameter.Local
+		// ReSharper disable once UnusedMember.Local
 		private static void Exit(int exitCode) {
+			/*
 			ProgramAugment = null;
 			Twitter = null;
 			Environment.Exit(exitCode);
+			*/
 		}
 	}
 }

@@ -55,12 +55,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataBase\TweetDataBase.cs" />
+    <Compile Include="ProgramAugment\Attributes\FlagAugmentAttribute.cs" />
+    <Compile Include="ProgramAugment\Attributes\ParameterFlagAugmentAttribute.cs" />
     <Compile Include="ProgramAugment\AugmentObjectFactory.cs" />
     <Compile Include="ProgramAugment\Augments.cs" />
-    <Compile Include="ProgramAugment\FlagAugmentAttribute.cs" />
+    <Compile Include="ProgramAugment\Exceptions\DuplicateFlagDefinitionsException.cs" />
+    <Compile Include="ProgramAugment\ExtensionMethods.cs" />
     <Compile Include="ProgramAugment\AugmentsObjectBase.cs" />
-    <Compile Include="ProgramAugment\ProgramAugmentDictionary.cs" />
-    <Compile Include="ProgramAugment\PropertyFlagAugmentAttribute.cs" />
+    <Compile Include="ProgramAugment\old\ProgramAugmentDictionary.cs" />
     <Compile Include="TweetExtractor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Twitter\TwitterManager.cs" />
