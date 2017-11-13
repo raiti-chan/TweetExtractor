@@ -29,7 +29,7 @@ namespace TweetExtractor {
 		private static void Main(string[] args) {
 			//ProgramAugment = new ProgramAugmentDictionary(args);
 			// ReSharper disable once UnusedVariable
-			AugmentObjectFactory<Augments> factory = new AugmentObjectFactory<Augments>();
+			ArgumentObjectFactory<Augments> factory = new ArgumentObjectFactory<Augments>();
 			//Augments augmentObject = factory.GeneratAugmentObject(args);
 			Console.WriteLine("HELP");
 			Console.WriteLine(factory.GetHelpText());
